@@ -120,8 +120,14 @@ public class RNAdManagerNativeViewManager extends ViewGroupManager<NativeAdView>
         view.setCustomTemplateIds(customTemplateIdsStringArray);
     }
 
-    @ReactProp(name = PROP_AD_SIZES)
-    public void setPropAdSize(final NativeAdView view, final ReadableArray adSizeStrings) {
+    @ReactProp(name = PROP_AD_SIZE)
+    public void setPropAdSize(final NativeAdView view, final String sizeString) {
+        AdSize adSize = getAdSizeFromString(sizeString);
+        view.setAdSize(adSize);
+    }
+
+    @ReactProp(name = PROP_VALID_AD_SIZES)
+    public void setPropValidAdSizes(final NativeAdView view, final ReadableArray adSizeStrings) {
         ReadableNativeArray nativeArray = (ReadableNativeArray) adSizeStrings;
         ArrayList<Object> list = nativeArray.toArrayList();
         String[] adSizeStringsArray = list.toArray(new String[list.size()]);
@@ -131,7 +137,7 @@ public class RNAdManagerNativeViewManager extends ViewGroupManager<NativeAdView>
             String adSizeString = adSizeStringsArray[i];
             adSizes[i] = getAdSizeFromString(adSizeString);
         }
-        view.setAdSizes(adSizes);
+        view.setValidAdSizes(adSizes);
     }
 
     @ReactProp(name = PROP_VALID_AD_TYPES)
