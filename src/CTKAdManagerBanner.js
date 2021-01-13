@@ -75,6 +75,7 @@ class Banner extends Component {
         createErrorFromErrorData(event.nativeEvent.error)
       );
     }
+    this.setState({ style: { display: 'none' } });
   }
 
   render() {
