@@ -66,7 +66,7 @@
 // Initialise BannerAdView as soon as all the props are set
 - (void)createViewIfCan
 {
-    if (!_adUnitID || !_adSize/* || !_validAdSizes || !_targeting*/) {
+    if (!_adUnitID || !_adSize || !_validAdSizes /* || !_targeting*/) {
         return;
     }
 

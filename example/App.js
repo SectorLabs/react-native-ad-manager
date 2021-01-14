@@ -44,10 +44,11 @@ export default class Example extends Component {
                         onAdLoaded={ad => console.log({ ...ad, appEvent: 'addLoaded' })}
                         onAdFailedToLoad={error => console.log(error)}
                         onSizeChange={values => console.log({ ...values, appEvent: 'sizeChanged' })}
-                        validAdSizes={[`fluid`]}
-                        adUnitID={'/1000931/olx-pk_android'}
+                        adSize={'fluid'}
+                        validAdSizes={['300x250','banner', `fluid`]}
+                        adUnitID={'/1000931/olx-pk_ios'}
                         onAppEvent={sx => console.log({ ...sx, appEvent: 'appEvent' })}
-                        testDevices={[]}
+                        testDevices={[Banner.simulatorId]}
                         targeting={{
                             customTargeting: { debug: true },
                         }}
