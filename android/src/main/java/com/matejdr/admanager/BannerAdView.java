@@ -81,6 +81,10 @@ class BannerAdView extends ReactViewGroup implements AppEventListener, Lifecycle
     private boolean isFluid() {
         AdSize adSize = adView.getAdSize();
 
+        if(adSize == null) {
+            return false;
+        }
+
         return adSize == AdSize.FLUID || adSize.toString().equals("320x50_mb");
     }
 
