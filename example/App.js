@@ -17,13 +17,13 @@ const BannerExample = ({ style, title, children, ...props }) => (
     </View>
 );
 
+const keys = ['1', '2', '3'];
+
 export default class Example extends Component {
     constructor() {
         super();
         this.state = {
-            fluidSizeIndex: 0,
-            adsList: [],
-            refreshingScrollView: false,
+            adKeyIndex: 0,
         };
     }
 
@@ -45,13 +45,14 @@ export default class Example extends Component {
                         onAdFailedToLoad={error => console.log(error)}
                         onSizeChange={values => console.log({ ...values, appEvent: 'sizeChanged' })}
                         adSize={'fluid'}
-                        validAdSizes={['300x250','banner', `fluid`]}
+                        validAdSizes={['300x250', 'banner', `fluid`]}
                         adUnitID={'/1000931/olx-pk_ios'}
                         onAppEvent={sx => console.log({ ...sx, appEvent: 'appEvent' })}
                         testDevices={[Banner.simulatorId]}
                         targeting={{
                             customTargeting: { debug: true },
                         }}
+                        slotIndex={this.state.adKeyIndex % 3}
                     />
                     <View
                         style={{
@@ -61,6 +62,10 @@ export default class Example extends Component {
                         }}
                     />
                 </View>
+                <Button
+                    onPress={() => this.setState({ adKeyIndex: this.state.adKeyIndex + 1 })}
+                    title={"Change ad"}
+                />
             </View>
         );
     }

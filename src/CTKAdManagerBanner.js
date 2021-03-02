@@ -42,15 +42,29 @@ class Banner extends Component {
     return true;
   }
 
-  componentDidMount() {
-    this.loadBanner();
+  componentDidUpdate(prevProps) {
+    if(prevProps.slotIndex !== this.props.slotIndex) {
+      this.reloadBanner(`${this.props.slotIndex}`);
+    }
   }
 
-  loadBanner() {
+  componentDidMount() {
+    this.loadBanner(`${this.props.slotIndex}`);
+  }
+
+  loadBanner(key) {
     UIManager.dispatchViewManagerCommand(
       findNodeHandle(this._bannerView),
       UIManager.getViewManagerConfig('CTKBannerView').Commands.loadBanner,
-      null
+      [key]
+    );
+  }
+
+  reloadBanner(key) {
+    UIManager.dispatchViewManagerCommand(
+      findNodeHandle(this._bannerView),
+      UIManager.getViewManagerConfig('CTKBannerView').Commands.reloadBanner,
+      [key]
     );
   }
 
@@ -79,10 +93,11 @@ class Banner extends Component {
   }
 
   render() {
+    const {style, slotIndex, ...props} = this.props;
     return (
       <CTKBannerView
-        {...this.props}
-        style={[this.props.style, this.state.style]}
+        {...props}
+        style={[style, this.state.style]}
         onSizeChange={this.handleSizeChange}
         onAdLoaded={this.handleOnAdLoaded}
         onAdFailedToLoad={this.handleAdFailedToLoad}
@@ -139,6 +154,7 @@ Banner.propTypes = {
   onAdClosed: func,
   onAdLeftApplication: func,
   onAppEvent: func,
+  slotIndex: number,
 
   targeting: shape({
     /**

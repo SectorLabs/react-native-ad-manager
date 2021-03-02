@@ -44,6 +44,7 @@ public class RNAdManagerBannerViewManager extends ViewGroupManager<BannerAdView>
     public static final String EVENT_APP_EVENT = "onAppEvent";
 
     public static final int COMMAND_LOAD_BANNER = 1;
+    public static final int COMMAND_RELOAD_BANNER = 2;
 
     @Override
     public String getName() {
@@ -59,10 +60,10 @@ public class RNAdManagerBannerViewManager extends ViewGroupManager<BannerAdView>
 
     @Override
     public void onDropViewInstance(BannerAdView view) {
-        if (view.adView != null) {
-            view.adView.setAppEventListener(null);
-            view.adView.setAdListener(null);
-            view.adView.destroy();
+        if (view.proxyBannerAdView.getAdView() != null) {
+            view.proxyBannerAdView.getAdView().setAppEventListener(null);
+            view.proxyBannerAdView.getAdView().setAdListener(null);
+            view.proxyBannerAdView.destroy();
         }
         super.onDropViewInstance(view);
     }
@@ -121,6 +122,7 @@ public class RNAdManagerBannerViewManager extends ViewGroupManager<BannerAdView>
     public void setPropAdUnitID(final BannerAdView view, final String adUnitID) {
         view.setAdUnitID(adUnitID);
     }
+
 
     @ReactProp(name = PROP_TEST_DEVICES)
     public void setPropTestDevices(final BannerAdView view, final ReadableArray testDevices) {
@@ -224,14 +226,20 @@ public class RNAdManagerBannerViewManager extends ViewGroupManager<BannerAdView>
     @Nullable
     @Override
     public Map<String, Integer> getCommandsMap() {
-        return MapBuilder.of("loadBanner", COMMAND_LOAD_BANNER);
+        return MapBuilder.of(
+                "loadBanner", COMMAND_LOAD_BANNER,
+                "reloadBanner", COMMAND_RELOAD_BANNER
+        );
     }
 
     @Override
     public void receiveCommand(BannerAdView root, int commandId, @javax.annotation.Nullable ReadableArray args) {
         switch (commandId) {
             case COMMAND_LOAD_BANNER:
-                root.loadBanner();
+                root.loadBanner(args.getString(0));
+                break;
+            case COMMAND_RELOAD_BANNER:
+                root.reloadBanner(args.getString(0));
                 break;
         }
     }
