@@ -9,7 +9,7 @@ import {
     RefreshControl,
     Dimensions,
 } from 'react-native';
-import { Interstitial, Banner, NativeAdsManager } from 'react-native-ad-manager';
+import { Interstitial, Banner, NativeAdsManager,  } from 'react-native-ad-manager';
 
 const BannerExample = ({ style, title, children, ...props }) => (
     <View {...props} style={[styles.example, style]}>
@@ -17,7 +17,6 @@ const BannerExample = ({ style, title, children, ...props }) => (
     </View>
 );
 
-const keys = ['1', '2', '3'];
 
 export default class Example extends Component {
     constructor() {
@@ -45,7 +44,6 @@ export default class Example extends Component {
                         onAdFailedToLoad={error => console.log(error)}
                         onSizeChange={values => console.log({ ...values, appEvent: 'sizeChanged' })}
                         adSize={'fluid'}
-                        validAdSizes={['300x250', 'banner', `fluid`]}
                         adUnitID={'/1000931/olx-pk_ios'}
                         onAppEvent={sx => console.log({ ...sx, appEvent: 'appEvent' })}
                         testDevices={[Banner.simulatorId]}

@@ -16,4 +16,8 @@ public class PublisherAdViewCache {
     public static void setPublisherAdView(String key, ProxyBannerAdView adView) {
         PublisherAdViewCache.cacheStore.put(key, adView);
     }
+
+    public static void clear() {
+        PublisherAdViewCache.cacheStore.clear();
+    }
 }

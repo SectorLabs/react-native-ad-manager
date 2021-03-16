@@ -19,6 +19,8 @@ import java.util.Arrays;
 
 public class ProxyBannerAdView {
     private PublisherAdView adView;
+    public Integer currentWidth;
+    public Integer currentHeight;
 
     public PublisherAdView getAdView() {
         return adView;
@@ -126,6 +128,7 @@ public class ProxyBannerAdView {
         this.adView.setAdSizes(adSizes.toArray(new AdSize[adSizes.size()]));
 
         this.adView.loadAd(this.buildRequest(adUnitID, customTargeting, categoryExclusions,  keywords, contentURL,publisherProvidedID, location, testDevices, correlator));
+
     }
 
     public void resume(){
@@ -144,6 +147,11 @@ public class ProxyBannerAdView {
         if (this.adView != null) {
             this.adView.destroy();
         }
+    }
+
+    public void setDimensions(Integer width, Integer height) {
+        this.currentHeight = height;
+        this.currentWidth = width;
     }
 
 }

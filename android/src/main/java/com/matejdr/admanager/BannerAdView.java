@@ -45,11 +45,7 @@ class BannerAdView extends ReactViewGroup implements AppEventListener, Lifecycle
     String publisherProvidedID;
     Location location;
     String correlator;
-
-    int top;
-    int left;
-    int width;
-    int height;
+    String slotIndex;
 
     private class MeasureAndLayoutRunnable implements Runnable {
         @Override
@@ -57,15 +53,27 @@ class BannerAdView extends ReactViewGroup implements AppEventListener, Lifecycle
             PublisherAdView adView = proxyBannerAdView.getAdView();
             boolean isFluid = proxyBannerAdView.isFluid();
 
+            int top, left, width, height;
+
             if (isFluid) {
-                adView.measure(
-                        MeasureSpec.makeMeasureSpec(getWidth(), MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(getHeight(), MeasureSpec.EXACTLY)
-                );
+                top = 0;
+                left = 0;
+                width = getWidth();
+                height = getHeight();
             } else {
-                adView.measure(width, height);
+                top = adView.getTop();
+                left = adView.getLeft();
+                width = adView.getAdSize().getWidthInPixels(getContext());
+                height = adView.getAdSize().getHeightInPixels(getContext());
             }
-            adView.layout(left, top, left + width, top + height);
+
+
+                adView.measure(
+                        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                );
+                adView.layout(left, top, left + width, top + height);
+
         }
     }
 
@@ -84,25 +92,7 @@ class BannerAdView extends ReactViewGroup implements AppEventListener, Lifecycle
     }
 
     public void onPublisherAdLoaded(){
-        PublisherAdView adView = proxyBannerAdView.getAdView();
-
-        boolean isFluid = proxyBannerAdView.isFluid();
-
-        if (isFluid) {
-            top = 0;
-            left = 0;
-            width = getWidth();
-            height = getHeight();
-        } else {
-            top = adView.getTop();
-            left = adView.getLeft();
-            width = adView.getAdSize().getWidthInPixels(getContext());
-            height = adView.getAdSize().getHeightInPixels(getContext());
-        }
-
-        if (!isFluid) {
-            sendOnSizeChangeEvent();
-        }
+        sendOnSizeChangeEvent();
     }
 
     private void createAdView() {
@@ -114,21 +104,29 @@ class BannerAdView extends ReactViewGroup implements AppEventListener, Lifecycle
             @Override
             public void onAdLoaded() {
                 AdSize adSize = proxyBannerAdView.getAdView().getAdSize();
+                boolean isFluid = proxyBannerAdView.isFluid();
+
+                onAppEvent("AD_LOADED_STEP1", "");
+
+                if (adSize == AdSize.SMART_BANNER || isFluid) {
+                    proxyBannerAdView.setDimensions( (int) PixelUtil.toDIPFromPixel(getWidth()),
+                            (int) PixelUtil.toDIPFromPixel(getHeight()));
+                    onAppEvent("AD_LOADED_IS_FLUID", proxyBannerAdView.currentHeight.toString());
+                } else {
+                    proxyBannerAdView.setDimensions( adSize.getWidth(),  adSize.getHeight());
+                    onAppEvent("AD_LOADED_IS_NOT_FLUID", proxyBannerAdView.currentHeight.toString());
+                }
 
                 onPublisherAdLoaded();
 
                 WritableMap ad = Arguments.createMap();
                 ad.putString("type", "banner");
                 ad.putString("gadSize", adSize.toString());
-                ad.putInt("width", width);
-                ad.putInt("height", height);
 
 
                 ad.putInt("measuredWidth", getMeasuredWidth());
                 ad.putInt("measuredHeight", getMeasuredHeight());
 
-                ad.putInt("left", left);
-                ad.putInt("top", top);
                 sendEvent(RNAdManagerBannerViewManager.EVENT_AD_LOADED, ad);
             }
 
@@ -176,25 +174,13 @@ class BannerAdView extends ReactViewGroup implements AppEventListener, Lifecycle
     }
 
     private void sendOnSizeChangeEvent() {
-        int currentWidth;
-        int currentHeight;
-        ReactContext reactContext = (ReactContext) getContext();
         WritableMap event = Arguments.createMap();
-        PublisherAdView adView = proxyBannerAdView.getAdView();
-        boolean isFluid = proxyBannerAdView.isFluid();
 
-        AdSize adSize = adView.getAdSize();
-        if (adSize == AdSize.SMART_BANNER || isFluid) {
-            currentWidth = (int) PixelUtil.toDIPFromPixel(adSize.getWidthInPixels(reactContext));
-            currentHeight = (int) PixelUtil.toDIPFromPixel(adSize.getHeightInPixels(reactContext));
-        } else {
-            currentWidth = adSize.getWidth();
-            currentHeight = adSize.getHeight();
-        }
         event.putString("type", "banner");
-        event.putDouble("width", currentWidth);
-        event.putDouble("height", currentHeight);
+        event.putDouble("width", proxyBannerAdView.currentWidth);
+        event.putDouble("height", proxyBannerAdView.currentHeight);
         event.putString("adsize", adSize.toString());
+        event.putBoolean("isFluid", proxyBannerAdView.isFluid());
         sendEvent(RNAdManagerBannerViewManager.EVENT_SIZE_CHANGE, event);
     }
 
@@ -226,10 +212,7 @@ class BannerAdView extends ReactViewGroup implements AppEventListener, Lifecycle
     }
 
     public void reloadBanner(String key) {
-        if (this.proxyBannerAdView != null) {
-            this.proxyBannerAdView.getAdView().pause();
-            this.removeView(this.proxyBannerAdView.getAdView());
-        }
+        onAppEvent("RELOAD_BANNER", key);
 
         this.proxyBannerAdView = PublisherAdViewCache.getPublisherAdView(key);
 
@@ -295,6 +278,13 @@ class BannerAdView extends ReactViewGroup implements AppEventListener, Lifecycle
 
     public void setCorrelator(String correlator) {
         this.correlator = correlator;
+    }
+
+    public void setSlotIndex(String slotIndex) {
+        if (!slotIndex.equals(this.slotIndex) && this.slotIndex != null) {
+            this.removeAllViews();
+        }
+        this.slotIndex = slotIndex;
     }
 
     @Override

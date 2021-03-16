@@ -1,206 +1,196 @@
-import {
-  arrayOf,
-  bool,
-  func,
-  instanceOf,
-  number,
-  object,
-  oneOf,
-  shape,
-  string,
-} from 'prop-types';
+import { arrayOf, bool, func, instanceOf, number, object, oneOf, shape, string } from 'prop-types';
 import React, { Component } from 'react';
-import {
-  findNodeHandle,
-  requireNativeComponent,
-  UIManager,
-  ViewPropTypes,
-} from 'react-native';
+import { findNodeHandle, requireNativeComponent, UIManager, ViewPropTypes } from 'react-native';
 import { createErrorFromErrorData } from './utils';
 
 class Banner extends Component {
-  constructor() {
-    super();
-    this.handleSizeChange = this.handleSizeChange.bind(this);
-    this.handleAppEvent = this.handleAppEvent.bind(this);
-    this.handleAdFailedToLoad = this.handleAdFailedToLoad.bind(this);
-    this.state = {
-      style: {},
-    };
+    constructor() {
+        super();
+        this.handleSizeChange = this.handleSizeChange.bind(this);
+        this.handleAppEvent = this.handleAppEvent.bind(this);
+        this.handleAdFailedToLoad = this.handleAdFailedToLoad.bind(this);
+        this.state = {
+            style: {},
+        };
 
-    this.handleOnAdLoaded = ({ nativeEvent }) => {
-      this.props.onAdLoaded &&
-      this.props.onAdLoaded(nativeEvent);
-    };
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    if (Object.entries(this.state.style).toString() === Object.entries(nextState.style).toString()
-    && Object.entries(this.props).toString() === Object.entries(nextProps).toString()) {
-      return false;
+        this.handleOnAdLoaded = ({ nativeEvent }) => {
+            this.props.onAdLoaded && this.props.onAdLoaded(nativeEvent);
+        };
     }
-    return true;
-  }
 
-  componentDidUpdate(prevProps) {
-    if(prevProps.slotIndex !== this.props.slotIndex) {
-      this.reloadBanner(`${this.props.slotIndex}`);
+    shouldComponentUpdate(nextProps, nextState) {
+        if (
+            Object.entries(this.state.style).toString() ===
+                Object.entries(nextState.style).toString() &&
+            Object.entries(this.props).toString() === Object.entries(nextProps).toString()
+        ) {
+            return false;
+        }
+        return true;
     }
-  }
 
-  componentDidMount() {
-    this.loadBanner(`${this.props.slotIndex}`);
-  }
-
-  loadBanner(key) {
-    UIManager.dispatchViewManagerCommand(
-      findNodeHandle(this._bannerView),
-      UIManager.getViewManagerConfig('CTKBannerView').Commands.loadBanner,
-      [key]
-    );
-  }
-
-  reloadBanner(key) {
-    UIManager.dispatchViewManagerCommand(
-      findNodeHandle(this._bannerView),
-      UIManager.getViewManagerConfig('CTKBannerView').Commands.reloadBanner,
-      [key]
-    );
-  }
-
-  handleSizeChange({ nativeEvent }) {
-    const { height, width, type } = nativeEvent;
-    this.setState({ style: { width, height } });
-    if (this.props.onSizeChange) {
-      this.props.onSizeChange(nativeEvent);
+    componentDidUpdate(prevProps) {
+        if (prevProps.slotIndex !== this.props.slotIndex) {
+            this.reloadBanner(`${this.props.slotIndex}`);
+        }
     }
-  }
 
-  handleAppEvent(event) {
-    if (this.props.onAppEvent) {
-      const { name, info } = event.nativeEvent;
-      this.props.onAppEvent({ name, info });
+    componentDidMount() {
+        this.loadBanner(`${this.props.slotIndex}`);
     }
-  }
 
-  handleAdFailedToLoad(event) {
-    if (this.props.onAdFailedToLoad) {
-      this.props.onAdFailedToLoad(
-        createErrorFromErrorData(event.nativeEvent.error)
-      );
+    loadBanner(key) {
+        UIManager.dispatchViewManagerCommand(
+            findNodeHandle(this._bannerView),
+            UIManager.getViewManagerConfig('CTKBannerView').Commands.loadBanner,
+            [key],
+        );
     }
-    this.setState({ style: { display: 'none' } });
-  }
 
-  render() {
-    const {style, slotIndex, ...props} = this.props;
-    return (
-      <CTKBannerView
-        {...props}
-        style={[style, this.state.style]}
-        onSizeChange={this.handleSizeChange}
-        onAdLoaded={this.handleOnAdLoaded}
-        onAdFailedToLoad={this.handleAdFailedToLoad}
-        onAppEvent={this.handleAppEvent}
-        ref={(el) => (this._bannerView = el)}
-      />
-    );
-  }
+    reloadBanner(key) {
+        UIManager.dispatchViewManagerCommand(
+            findNodeHandle(this._bannerView),
+            UIManager.getViewManagerConfig('CTKBannerView').Commands.reloadBanner,
+            [key],
+        );
+    }
+
+    handleSizeChange({ nativeEvent }) {
+        const { height, width, isFluid } = nativeEvent;
+        if (isFluid) {
+            this.setState({ style: { } });
+        } else {
+            this.setState({
+                style: {
+                    width,
+                    height
+                },
+            });
+        }
+        if (this.props.onSizeChange) {
+            this.props.onSizeChange(nativeEvent);
+        }
+    }
+
+    handleAppEvent(event) {
+        if (this.props.onAppEvent) {
+            const { name, info } = event.nativeEvent;
+            this.props.onAppEvent({ name, info });
+        }
+    }
+
+    handleAdFailedToLoad(event) {
+        if (this.props.onAdFailedToLoad) {
+            this.props.onAdFailedToLoad(createErrorFromErrorData(event.nativeEvent.error));
+        }
+        this.setState({ style: { display: 'none' } });
+    }
+
+    render() {
+        const { style, ...props } = this.props;
+        return (
+            <CTKBannerView
+                {...props}
+                style={[style, this.state.style]}
+                onSizeChange={this.handleSizeChange}
+                onAdLoaded={this.handleOnAdLoaded}
+                onAdFailedToLoad={this.handleAdFailedToLoad}
+                onAppEvent={this.handleAppEvent}
+                ref={el => (this._bannerView = el)}
+            />
+        );
+    }
 }
 
 Banner.simulatorId = 'SIMULATOR';
 
 Banner.propTypes = {
-  ...ViewPropTypes,
-
-  /**
-   * DFP iOS library banner size constants
-   * (https://developers.google.com/admob/ios/banner)
-   * banner (320x50, Standard Banner for Phones and Tablets)
-   * largeBanner (320x100, Large Banner for Phones and Tablets)
-   * mediumRectangle (300x250, IAB Medium Rectangle for Phones and Tablets)
-   * fullBanner (468x60, IAB Full-Size Banner for Tablets)
-   * leaderboard (728x90, IAB Leaderboard for Tablets)
-   * smartBannerPortrait (Screen width x 32|50|90, Smart Banner for Phones and Tablets)
-   * smartBannerLandscape (Screen width x 32|50|90, Smart Banner for Phones and Tablets)
-   *
-   * banner is default
-   */
-  adSize: string,
-
-  /**
-   * Optional array specifying all valid sizes that are appropriate for this slot.
-   */
-  validAdSizes: arrayOf(string),
-
-  /**
-   * DFP ad unit ID
-   */
-  adUnitID: string,
-
-  /**
-   * Array of test devices. Use Banner.simulatorId for the simulator
-   */
-  testDevices: arrayOf(string),
-
-  onSizeChange: func,
-
-  /**
-   * DFP library events
-   */
-  onAdLoaded: func,
-  onAdFailedToLoad: func,
-  onAdOpened: func,
-  onAdClosed: func,
-  onAdLeftApplication: func,
-  onAppEvent: func,
-  slotIndex: number,
-
-  targeting: shape({
-    /**
-     * Arbitrary object of custom targeting information.
-     */
-    customTargeting: object,
+    ...ViewPropTypes,
 
     /**
-     * Array of exclusion labels.
+     * DFP iOS library banner size constants
+     * (https://developers.google.com/admob/ios/banner)
+     * banner (320x50, Standard Banner for Phones and Tablets)
+     * largeBanner (320x100, Large Banner for Phones and Tablets)
+     * mediumRectangle (300x250, IAB Medium Rectangle for Phones and Tablets)
+     * fullBanner (468x60, IAB Full-Size Banner for Tablets)
+     * leaderboard (728x90, IAB Leaderboard for Tablets)
+     * smartBannerPortrait (Screen width x 32|50|90, Smart Banner for Phones and Tablets)
+     * smartBannerLandscape (Screen width x 32|50|90, Smart Banner for Phones and Tablets)
+     *
+     * banner is default
      */
-    categoryExclusions: arrayOf(string),
+    adSize: string,
 
     /**
-     * Array of keyword strings.
+     * Optional array specifying all valid sizes that are appropriate for this slot.
      */
-    keywords: arrayOf(string),
+    validAdSizes: arrayOf(string),
 
     /**
-     * Applications that monetize content matching a webpage's content may pass
-     * a content URL for keyword targeting.
+     * DFP ad unit ID
      */
-    contentURL: string,
+    adUnitID: string,
 
     /**
-     * You can set a publisher provided identifier (PPID) for use in frequency
-     * capping, audience segmentation and targeting, sequential ad rotation, and
-     * other audience-based ad delivery controls across devices.
+     * Array of test devices. Use Banner.simulatorId for the simulator
      */
-    publisherProvidedID: string,
+    testDevices: arrayOf(string),
+
+    onSizeChange: func,
 
     /**
-     * The user’s current location may be used to deliver more relevant ads.
+     * DFP library events
      */
-    location: shape({
-      latitude: number,
-      longitude: number,
-      accuracy: number,
+    onAdLoaded: func,
+    onAdFailedToLoad: func,
+    onAdOpened: func,
+    onAdClosed: func,
+    onAdLeftApplication: func,
+    onAppEvent: func,
+    slotIndex: number,
+
+    targeting: shape({
+        /**
+         * Arbitrary object of custom targeting information.
+         */
+        customTargeting: object,
+
+        /**
+         * Array of exclusion labels.
+         */
+        categoryExclusions: arrayOf(string),
+
+        /**
+         * Array of keyword strings.
+         */
+        keywords: arrayOf(string),
+
+        /**
+         * Applications that monetize content matching a webpage's content may pass
+         * a content URL for keyword targeting.
+         */
+        contentURL: string,
+
+        /**
+         * You can set a publisher provided identifier (PPID) for use in frequency
+         * capping, audience segmentation and targeting, sequential ad rotation, and
+         * other audience-based ad delivery controls across devices.
+         */
+        publisherProvidedID: string,
+
+        /**
+         * The user’s current location may be used to deliver more relevant ads.
+         */
+        location: shape({
+            latitude: number,
+            longitude: number,
+            accuracy: number,
+        }),
+        correlator: string,
     }),
-    correlator: string,
-  }),
-
 };
 
-const CTKBannerView = requireNativeComponent(
-  'CTKBannerView',
-  Banner
-);
+const CTKBannerView = requireNativeComponent('CTKBannerView', Banner);
 
 export default Banner;
